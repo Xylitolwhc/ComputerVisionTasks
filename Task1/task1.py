@@ -9,7 +9,7 @@ def classify(train_data, train_label):
     bias = 0.0
     error = 0.1
     num = len(train_data)
-    for j in range(1000):
+    while True:
         for i in range(num):
             x = train_data[i]
             y = train_label[i]
