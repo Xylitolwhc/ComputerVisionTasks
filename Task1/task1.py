@@ -1,13 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+rate = 0.01
+error = 0.1
+
 
 def classify(train_data, train_label):
     # initialize weight = 0
     w = np.zeros(len(train_data[0]))
-    rate = 0.01
     bias = 0.0
-    error = 0.1
     num = len(train_data)
     while True:
         for i in range(num):
