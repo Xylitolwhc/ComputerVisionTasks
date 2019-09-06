@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 rate = 0.01
-error = 0.1
-
+error = 0.05
+size = 100
 
 def classify(train_data, train_label):
     # initialize weight = 0
@@ -31,7 +31,6 @@ def classify(train_data, train_label):
 
 
 def __main__():
-    size = 10
     mean = (0, 0)
     cov = [[1, 0.75], [0.75, 1]]
     # generate negative samples
