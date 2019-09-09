@@ -3,6 +3,7 @@ import numpy as np
 import sklearn
 import sklearn.datasets
 import sklearn.linear_model
+import sklearn.neural_network
 import matplotlib
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -101,5 +102,52 @@ def __main__():
     plt.show()
 
 
+def sklearn_train(model):
+    categories = ['alt.atheism', 'talk.religion.misc', 'comp.graphics', 'sci.space']
+
+    newsgroups_train = fetch_20newsgroups(subset='train', categories=categories)
+    newsgroups_test = fetch_20newsgroups(subset='test', categories=categories)
+
+    num_train = len(newsgroups_train.data)
+    num_test = len(newsgroups_test.data)
+
+    # max_features is an important parameter. You should adjust it.
+    vectorizer = TfidfVectorizer(max_features=40)
+
+    X = vectorizer.fit_transform(newsgroups_train.data + newsgroups_test.data)
+    X_train = X[0:num_train, :]
+    X_test = X[num_train:num_train + num_test, :]
+
+    Y_train = newsgroups_train.target
+    Y_test = newsgroups_test.target
+
+    print(X_train.shape, Y_train.shape)
+    print(X_test.shape, Y_test.shape)
+
+    model.fit(X_train, Y_train)
+
+    Y_predict = model.predict(X_test)
+
+    print(Y_test)
+    print(Y_predict)
+
+    ncorrect = 0
+    for dy in (Y_test - Y_predict):
+        if 0 == dy:
+            ncorrect += 1
+
+    print('text classification accuracy is {}%'.format(round(100.0 * ncorrect / len(Y_test))))
+
+
+def main2():
+    clf = sklearn.linear_model.LogisticRegressionCV(max_iter=1000, multi_class="auto", cv=5)
+    sklearn_train(clf)
+    clf = sklearn.neural_network.MLPClassifier(activation="tanh", max_iter=1000, hidden_layer_sizes=(50, 50),
+                                               early_stopping=True)
+    sklearn_train(clf)
+    pass
+
+
 if __name__ == '__main__':
-    __main__()
+    # __main__()
+    main2()
