@@ -10,7 +10,7 @@ from pprint import pprint
 
 num_samples = 200
 reg_lambda = 0.01
-epslion = 0.001
+epsilon = 0.001
 error = 0.99
 
 
@@ -77,10 +77,10 @@ def train(model, X, y):
         dW1 += reg_lambda * W1
 
         # Gradient descent parameter update
-        W1 += -epslion * dW1
-        b1 += -epslion * db1
-        W2 += -epslion * dW2
-        b2 += -epslion * db2
+        W1 += -epsilon * dW1
+        b1 += -epsilon * db1
+        W2 += -epsilon * dW2
+        b2 += -epsilon * db2
 
         # print(dW1, db1, dW2, db2)
         model['W1'], model['b1'], model['W2'], model['b2'] = W1, b1, W2, b2
