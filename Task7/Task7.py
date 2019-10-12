@@ -13,7 +13,7 @@ def sift(img):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-def fast(img):
+def fast0(img):
     fast = cv2.FastFeatureDetector()
     kp = fast.detect(img, None)
     img2 = cv2.drawKeypoints(img, kp, color=(255, 0, 0))
@@ -22,5 +22,5 @@ def fast(img):
     cv2.destroyAllWindows()
 
 img = cv2.imread('./img/tree/img1.ppm',0)
-fast(img)
+fast0(img)
 #sift()
