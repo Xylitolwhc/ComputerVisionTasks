@@ -178,7 +178,8 @@ gen
 .idea/vcs.xml
 
 # DataSet and so on
-/FinalTask/datasets
+FinalTask/datasets
 /Task9/dataset
 *.xz
 *.pkl
+FinalTask/.ipynb_checkpoints
