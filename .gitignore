@@ -177,3 +177,8 @@ out
 gen
 .idea/vcs.xml
 
+# DataSet and so on
+/FinalTask/datasets
+/Task9/dataset
+*.xz
+*.pkl
