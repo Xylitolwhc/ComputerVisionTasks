@@ -22,6 +22,8 @@ FRAME_DETECT_RATE = 2
 FRAME_RESIZE_SCALE = 2
 # 人脸识别特征比较阈值，越小越容易判断为同一人
 FACE_DISTANCE_TOLERANCE = 0.6
+# 存放人脸图像的文件夹路径
+KNOWN_IMAGE_PATH = "datasets/faces"
 
 
 def test():
@@ -30,7 +32,7 @@ def test():
 
     # 用pathlib获取目标文件夹下所有图片，并使用文件名来作为人名
     # opencv的putText函数只支持英文绘制，中文会出现乱码，有空可以换用Pillow绘制中文名
-    data_root = pathlib.Path("datasets/faces")
+    data_root = pathlib.Path(KNOWN_IMAGE_PATH)
     all_image_paths = list(data_root.glob('*/*'))
     all_image_paths = [str(path) for path in all_image_paths]
     all_images = [fr.load_image_file(path) for path in all_image_paths]
