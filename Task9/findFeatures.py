@@ -1,7 +1,7 @@
 # Source:https://github.com/willard-yuan/image-retrieval/tree/master/bag-of-words-python-dev-version
-# python 3.7.3
-# opencv-contrib-python 3.4.2.16
-# opencv-python 3.4.2.16
+# python 3.7.4
+# opencv-contrib 4.1.2
+# opencv 4.1.1
 
 import cv2
 import numpy as np
@@ -70,7 +70,8 @@ def perform_kmeans(image_paths, des_list, descriptors):
 
 def main():
     start_time = time.time()
-    image_paths, des_list, descriptors=joblib.load("descriptors.xz")
+    image_paths, des_list, descriptors = perform_sift()
+    # image_paths, des_list, descriptors = joblib.load("descriptors.xz")
     perform_kmeans(image_paths, des_list, descriptors)
     end_time = time.time()
     print("Time used:", end_time - start_time)
