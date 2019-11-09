@@ -179,7 +179,7 @@ gen
 
 # DataSet and so on
 FinalTask/datasets
-/Task9/dataset
+Task9/dataset
 *.xz
 *.pkl
 FinalTask/.ipynb_checkpoints
