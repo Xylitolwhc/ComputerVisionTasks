@@ -38,7 +38,7 @@ def perform_sift():
     descriptors = np.array(descriptors)
 
     # 将提取出的特征保存至文件descriptors.xz
-    joblib.dump((image_paths, des_list, descriptors), "descriptors.xz")
+    joblib.dump((image_paths, des_list, descriptors), "descriptors.joblib", compress=False)
     return image_paths, des_list, descriptors
 
 
@@ -52,7 +52,6 @@ def perform_hierarchical_cluster(image_paths, des_list, descriptors):
         words, distance = vq(des_list[i][1], centroids)
         for w in words:
             im_features[i][w] += 1
-
 
     pass
 
@@ -131,6 +130,7 @@ def main():
     start_time = time.time()
     image_paths, des_list, descriptors = perform_sift()
     # image_paths, des_list, descriptors = joblib.load("descriptors.xz")
+    # perform_hierarchical_cluster(image_paths, des_list, descriptors)
     # perform_kmeans(image_paths, des_list, descriptors)
     end_time = time.time()
     print("Time used:", end_time - start_time)
