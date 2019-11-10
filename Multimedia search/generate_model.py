@@ -71,10 +71,9 @@ def perform_hierarchical_cluster(image_paths, des_list, descriptors):
 
 
 def main():
-    #image_paths, des_list, descriptors = perform_sift()
-    image_paths, des_list, descriptors = joblib.load("descriptors.joblib")
+    image_paths, des_list, descriptors = perform_sift()
+    # image_paths, des_list, descriptors = joblib.load("descriptors.joblib")
     perform_hierarchical_cluster(image_paths, des_list, descriptors)
-
 
 
 if __name__ == '__main__':

@@ -8,10 +8,11 @@ import pathlib
 import re
 import time
 
-TEST_PATH = "dataset/training"
+TEST_PATH = "dataset/testing"
 
 RERANK_DEPTH = 9
 MIN_MATCH_COUNT = 10
+
 
 def search(image_path):
     # 读取训练好的分类模型
@@ -60,7 +61,7 @@ def search(image_path):
             reRank_image_score[i] = 0
 
     reRank_ID = np.argsort(-reRank_image_score)
-    return reRank_ID, reRank_image_path, reRank_image_score
+    return reRank_ID, reRank_image_path, reRank_image_score, image
 
 
 def show_search_result(reRank_ID, reRank_image_path, reRank_image_score, image):
@@ -142,7 +143,7 @@ def show_RANSAC(img_path1, img_path2):
     cv2.waitKey()
 
 
-def main():
+def test_all():
     correct_cnt = 0
     test_image_paths = list(pathlib.Path(TEST_PATH).glob("*"))
     for image_path in test_image_paths:
@@ -150,14 +151,25 @@ def main():
         query_img_name = pathlib.Path(image_path).stem
         found_img_name = pathlib.Path(reRank_image_path[reRank_ID[1]]).stem
 
-        query_label = query_img_name[:re.search("-\d", query_img_name).start()]
-        found_label = found_img_name[:re.search("-\d", found_img_name).start()]
+        query_label = query_img_name[:re.search("_\d", query_img_name).start()]
+        found_label = found_img_name[:re.search("_\d", found_img_name).start()]
 
         if query_label == found_label:
             correct_cnt += 1
         print(query_label == found_label)
     print(correct_cnt)
     print(len(test_image_paths))
+
+
+def test():
+    test_image_path = "dataset/testing/radcliffe_camera_000397.jpg"
+    reRank_ID, reRank_image_path, reRank_image_score, image = search(test_image_path)
+    show_search_result(reRank_ID, reRank_image_path, reRank_image_score, image)
+
+
+def main():
+    # test_all()
+    test()
 
 
 if __name__ == '__main__':
