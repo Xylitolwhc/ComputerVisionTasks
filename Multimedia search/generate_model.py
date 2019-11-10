@@ -1,13 +1,13 @@
 import cv2
 import numpy as np
 import joblib
-from scipy.cluster.vq import *
 from sklearn import preprocessing
 import time
 import pathlib
 import hierarchical_cluster as hc
 
 TRAIN_PATH = "dataset/training/"
+
 HIERARCHY_NODES = 3
 HIERARCHY_DEPTH = 6
 
@@ -71,16 +71,14 @@ def perform_hierarchical_cluster(image_paths, des_list, descriptors):
 
 
 def main():
-    start_time = time.time()
-
-    # image_paths, des_list, descriptors = perform_sift()
+    #image_paths, des_list, descriptors = perform_sift()
     image_paths, des_list, descriptors = joblib.load("descriptors.joblib")
-    im_features, image_paths, idf, centroids = \
-        perform_hierarchical_cluster(image_paths, des_list, descriptors)
+    perform_hierarchical_cluster(image_paths, des_list, descriptors)
 
-    end_time = time.time()
-    print("Time used:", end_time - start_time)
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     main()
+    end_time = time.time()
+    print("Time used:", end_time - start_time)

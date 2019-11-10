@@ -9,7 +9,7 @@ def hierarchical_cluster(descriptors, descriptors_num, nodes, max_level, current
     level_info["nodes"] = nodes
 
     # 如果数据小于节点数则将当前节点作为根节点
-    if len(descriptors) >= nodes and current_level < max_level:
+    if len(descriptors) > nodes and current_level < max_level:
         level_info["isEnd"] = False
     else:
         level_info["isEnd"] = True
