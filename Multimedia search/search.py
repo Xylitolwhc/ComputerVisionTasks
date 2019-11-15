@@ -14,9 +14,9 @@ RERANK_DEPTH = 9
 MIN_MATCH_COUNT = 10
 
 
-def search(image_path):
-    # 读取训练好的分类模型
-    im_features, image_paths, idf, centroids = joblib.load("model.joblib")
+def search(image_path, im_features, image_paths, idf, centroids):
+    # # 读取训练好的分类模型
+    # im_features, image_paths, idf, centroids = joblib.load("model.joblib")
 
     # 提取需要查询的图片的sift特征
     des_ext = cv2.xfeatures2d.SIFT_create()
@@ -78,7 +78,7 @@ def show_search_result(reRank_ID, reRank_image_path, reRank_image_score, image):
         plt.subplot(4, 3, i + 4)
         plt.imshow(img)
         plt.axis('off')
-        plt.title(img_name + " score:%.3f" % reRank_image_score[ID])
+        plt.title(img_name[:re.search("_\d", img_name).start()] + " score:%.3f" % reRank_image_score[ID])
 
     # plt.savefig("./a.jpg")
     plt.show()
@@ -101,12 +101,11 @@ def show_RANSAC(img_path1, img_path2):
     for m, n in knn_matches:
         if m.distance < ratio_thresh * n.distance:
             good_matches.append(m)
-    print(len(good_matches))
+
     # -- Draw matches
     img_matches = np.empty((max(img_object.shape[0], img_scene.shape[0]), img_object.shape[1] + img_scene.shape[1], 3),
                            dtype=np.uint8)
-    cv2.drawMatches(img_object, keypoints_obj, img_scene, keypoints_scene, good_matches, img_matches,
-                    flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+
     # -- Localize the object
     obj = np.empty((len(good_matches), 2), dtype=np.float32)
     scene = np.empty((len(good_matches), 2), dtype=np.float32)
@@ -116,7 +115,17 @@ def show_RANSAC(img_path1, img_path2):
         obj[i, 1] = keypoints_obj[good_matches[i].queryIdx].pt[1]
         scene[i, 0] = keypoints_scene[good_matches[i].trainIdx].pt[0]
         scene[i, 1] = keypoints_scene[good_matches[i].trainIdx].pt[1]
-    H, _ = cv2.findHomography(obj, scene, cv2.RANSAC)
+    H, matchesMask = cv2.findHomography(obj, scene, cv2.RANSAC, 5.0)
+
+    print(len(good_matches), np.sum(matchesMask))
+
+    draw_params = dict(matchColor=(0, 255, 0),  # draw matches in green color
+                       singlePointColor=None,
+                       matchesMask=matchesMask,  # draw only inliers
+                       flags=2)
+    cv2.drawMatches(img_object, keypoints_obj, img_scene, keypoints_scene, good_matches, img_matches,
+                    **draw_params)
+
     # -- Get the corners from the image_1 ( the object to be "detected" )
     obj_corners = np.empty((4, 1, 2), dtype=np.float32)
     obj_corners[0, 0, 0] = 0
@@ -140,14 +149,18 @@ def show_RANSAC(img_path1, img_path2):
 
     # -- Show detected matches
     cv2.imshow('Matches', img_matches)
-    cv2.waitKey()
 
 
 def test_all():
     correct_cnt = 0
     test_image_paths = list(pathlib.Path(TEST_PATH).glob("*"))
-    for image_path in test_image_paths:
-        reRank_ID, reRank_image_path, reRank_image_score = search(str(image_path))
+
+    # 读取训练好的分类模型
+    im_features, image_paths, idf, centroids = joblib.load("model.joblib")
+
+    for index, image_path in enumerate(test_image_paths):
+        reRank_ID, reRank_image_path, reRank_image_score, image = search(str(image_path), im_features, image_paths, idf,
+                                                                         centroids)
         query_img_name = pathlib.Path(image_path).stem
         found_img_name = pathlib.Path(reRank_image_path[reRank_ID[1]]).stem
 
@@ -156,20 +169,47 @@ def test_all():
 
         if query_label == found_label:
             correct_cnt += 1
-        print(query_label == found_label)
+        print(str(index) + "\t:\t" + str(query_label == found_label))
     print(correct_cnt)
     print(len(test_image_paths))
 
 
 def test():
-    test_image_path = "dataset/testing/radcliffe_camera_000397.jpg"
+    test_image_path = "dataset/testing/radcliffe_camera_000539.jpg"
     reRank_ID, reRank_image_path, reRank_image_score, image = search(test_image_path)
     show_search_result(reRank_ID, reRank_image_path, reRank_image_score, image)
+    show_RANSAC(test_image_path, reRank_image_path[reRank_ID[1]])
+    cv2.waitKey()
+
+
+def feedback():
+    test_image_paths = list(pathlib.Path(TEST_PATH).glob("*"))
+    test_image_paths = [str(test_image_path) for test_image_path in test_image_paths]
+
+    correct = 0
+    wrong = 0
+    im_features, image_paths, idf, centroids = joblib.load("model.joblib")
+
+    for test_image_path in test_image_paths:
+        reRank_ID, reRank_image_path, reRank_image_score, image = search(test_image_path, im_features, image_paths, idf,
+                                                                         centroids)
+        show_RANSAC(reRank_image_path[reRank_ID[0]], reRank_image_path[reRank_ID[1]])
+        key = cv2.waitKey(0)
+        if key & 0xFF == ord('z'):
+            print("True")
+            correct += 1
+        elif key & 0xFF == ord('x'):
+            print("False")
+            wrong += 1
+        cv2.destroyAllWindows()
+
+    print("Correct:\t%d\nWrong:\t%d" % (correct, wrong))
 
 
 def main():
     # test_all()
-    test()
+    # test()
+    feedback()
 
 
 if __name__ == '__main__':
