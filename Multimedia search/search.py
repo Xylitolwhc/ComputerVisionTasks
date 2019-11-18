@@ -8,15 +8,24 @@ import pathlib
 import re
 import time
 
+# 测试集文件夹路径
 TEST_PATH = "dataset/testing"
 
+# 使用RANSAC进行二次排序时选取的排序较前的图片数
 RERANK_DEPTH = 9
+# 使用RANSAC校验时所需最小的匹配点对数
 MIN_MATCH_COUNT = 10
 
 
+# 搜索单张图片
 def search(image_path, im_features, image_paths, idf, centroids):
     # # 读取训练好的分类模型
     # im_features, image_paths, idf, centroids = joblib.load("model.joblib")
+
+    # 检查需要搜索的图片文件是否存在
+    if not pathlib.Path(image_path).exists():
+        print("Error: Image Not Found!")
+        raise FileNotFoundError(image_path)
 
     # 提取需要查询的图片的sift特征
     des_ext = cv2.xfeatures2d.SIFT_create()
@@ -45,11 +54,12 @@ def search(image_path, im_features, image_paths, idf, centroids):
         ratio_thresh = 0.75
         good_matches = []
         for m, n in knn_matches:
+            # 第一次筛选出距离差在某一阈值之间的匹配点对
             if m.distance < ratio_thresh * n.distance:
                 good_matches.append(m)
 
         if len(good_matches) > MIN_MATCH_COUNT:
-            # 使用RANSAC对所有匹配点进行校验，筛选出有效的匹配点对
+            # 第二次筛选，使用RANSAC对所有匹配点进行拟合并校验，筛选出有效的匹配点对
             src_pts = np.float32([kp[m.queryIdx].pt for m in good_matches]).reshape(-1, 1, 2)
             dst_pts = np.float32([kp1[m.trainIdx].pt for m in good_matches]).reshape(-1, 1, 2)
             retval, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
@@ -64,6 +74,7 @@ def search(image_path, im_features, image_paths, idf, centroids):
     return reRank_ID, reRank_image_path, reRank_image_score, image
 
 
+# 展示最相近的几张图片
 def show_search_result(reRank_ID, reRank_image_path, reRank_image_score, image):
     plt.figure(num=1, figsize=(10, 20))
     plt.gray()
@@ -84,6 +95,8 @@ def show_search_result(reRank_ID, reRank_image_path, reRank_image_score, image):
     plt.show()
 
 
+# 任务3 空间校验的实现
+# 展示两张图片对应点对进行RANSAC处理过后的匹配结果
 def show_RANSAC(img_path1, img_path2):
     img_object = cv2.imread(img_path1)
     img_scene = cv2.imread(img_path2)
@@ -151,6 +164,7 @@ def show_RANSAC(img_path1, img_path2):
     cv2.imshow('Matches', img_matches)
 
 
+# 对测试集下所有图片逐一搜索，并根据文件名来确认是否分类正确，并计算正确率
 def test_all():
     correct_cnt = 0
     test_image_paths = list(pathlib.Path(TEST_PATH).glob("*"))
@@ -174,14 +188,20 @@ def test_all():
     print(len(test_image_paths))
 
 
+# 对单张图片进行搜索
 def test():
-    test_image_path = "dataset/testing/radcliffe_camera_000539.jpg"
-    reRank_ID, reRank_image_path, reRank_image_score, image = search(test_image_path)
+    test_image_path = "dataset/testing/radcliffe_camera_000397.jpg"
+    # 读取训练好的分类模型
+    im_features, image_paths, idf, centroids = joblib.load("model.joblib")
+
+    reRank_ID, reRank_image_path, reRank_image_score, image = search(test_image_path, im_features, image_paths, idf,
+                                                                     centroids)
     show_search_result(reRank_ID, reRank_image_path, reRank_image_score, image)
     show_RANSAC(test_image_path, reRank_image_path[reRank_ID[1]])
     cv2.waitKey()
 
 
+# 任务4 增加人工反馈功能，并根据反馈结果调整各word的权重//TODO
 def feedback():
     test_image_paths = list(pathlib.Path(TEST_PATH).glob("*"))
     test_image_paths = [str(test_image_path) for test_image_path in test_image_paths]
@@ -208,8 +228,9 @@ def feedback():
 
 def main():
     # test_all()
-    # test()
-    feedback()
+    test()
+    # feedback()
+    pass
 
 
 if __name__ == '__main__':

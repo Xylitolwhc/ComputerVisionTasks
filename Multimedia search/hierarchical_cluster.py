@@ -1,3 +1,5 @@
+# 任务2 层次聚类的实现
+
 from scipy.cluster.vq import *
 import numpy as np
 
@@ -8,11 +10,11 @@ def hierarchical_cluster(descriptors, descriptors_num, nodes, max_level, current
     level_info["level"] = current_level
     level_info["nodes"] = nodes
 
-    # 如果数据小于节点数则将当前节点作为根节点
+    # 如果数据小于节点数则将当前节点作为叶子节点
     if len(descriptors) > nodes and current_level < max_level:
-        level_info["isEnd"] = False
+        level_info["isLeaf"] = False
     else:
-        level_info["isEnd"] = True
+        level_info["isLeaf"] = True
         return level_info
 
     # 根据序号取出需要聚类的数据
@@ -47,10 +49,10 @@ def hierarchical_cluster(descriptors, descriptors_num, nodes, max_level, current
     return level_info
 
 
-# 对层次聚类结果进行编号
+# 对层次聚类结果进行编号，实际上在生成树时候就可以编号了//XXX
 def hierarchical_cluster_number(level_info, cluster_num=0):
     nodes = level_info["nodes"]
-    if level_info["isEnd"] is False:
+    if level_info["isLeaf"] is False:
         for i in range(nodes):
             cluster_num = hierarchical_cluster_number(level_info[i], cluster_num)
     else:
@@ -64,7 +66,7 @@ def hierarchical_cluster_predict(level_info, descriptors):
     labels = []
     for descriptor in descriptors:
         node = level_info
-        while node["isEnd"] is False:
+        while node["isLeaf"] is False:
             centroids = node["centroids"]
             label, dist = vq([descriptor], centroids)
             node = node[label[0]]
@@ -72,7 +74,7 @@ def hierarchical_cluster_predict(level_info, descriptors):
     return labels
 
 
-# BoW 编码
+# BoW 编码。这一步是最消耗时间的，实际上在生成模型时候就可以返回分类结果，节约大量时间//XXX
 def hierarchical_cluster_transform(centroids, des_list):
     im_features = np.zeros((len(des_list), centroids["words"]), "float32")
     for i in range(len(des_list)):
