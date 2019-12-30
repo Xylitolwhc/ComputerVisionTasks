@@ -10,10 +10,11 @@ import pathlib
 import cv2
 import face_recognition as fr
 import numpy as np
+import tensorflow as tf
 
 # 人脸识别模型选择，hog为Histogram of Oriented Gradients梯度方向直方图模型，cnn为Convolutional Neural Networks卷积神经网络模型
 # hog速度快，但精准度较低，cnn即使用了GPU加速仍然速度慢，但精准度高
-FACE_LOCATION_MODEL = "hog"
+FACE_LOCATION_MODEL = 'hog'
 # 人脸编码时上采样次数，越大越精准，但越慢
 IMAGE_JITTERS = 5
 # 视频采样间隔帧数，每隔几帧进行一次人脸检测和识别
@@ -23,7 +24,18 @@ FRAME_RESIZE_SCALE = 2
 # 人脸识别特征比较阈值，越小越容易判断为同一人
 FACE_DISTANCE_TOLERANCE = 0.6
 # 存放人脸图像的文件夹路径
-KNOWN_IMAGE_PATH = "datasets/faces"
+KNOWN_IMAGE_PATH = 'datasets/faces'
+# 加载情绪识别模型
+emotion_classifier = tf.keras.models.load_model('emotion.hdf5')
+emotion_labels = {
+    0: 'angry',
+    1: 'hate',
+    2: 'fear',
+    3: 'happy',
+    4: 'sad',
+    5: 'surprise',
+    6: 'calm'
+}
 
 
 def test():
@@ -67,9 +79,10 @@ def test():
             face_encodings = fr.face_encodings(rgb_small_frame, face_locations, num_jitters=IMAGE_JITTERS)
 
             face_names = []
-            for face_encoding in face_encodings:
+            face_emotions = []
+            for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
                 # 默认人名为unknown
-                name = "unknown"
+                name = 'unknown'
 
                 # 计算识别出的人脸与已知人脸的编码距离，将其中距离最小，且小于阈值的人脸来作为识别结果
                 face_distances = fr.face_distance(known_face_encodings, face_encoding)
@@ -78,8 +91,19 @@ def test():
                     name = known_face_names[best_match_index]
                 face_names.append(name)
 
+                # 检测表情
+                face_emotion = frame[top:bottom, left:right]
+                face_emotion = cv2.cvtColor(face_emotion, cv2.COLOR_BGR2GRAY)
+                face_emotion = cv2.resize(face_emotion, (48, 48))
+                face_emotion = face_emotion / 255.0
+                face_emotion = np.expand_dims(face_emotion, 0)
+                face_emotion = np.expand_dims(face_emotion, -1)
+                emotion_label_arg = np.argmax(emotion_classifier.predict(face_emotion))
+                emotion = emotion_labels[emotion_label_arg]
+                face_emotions.append(emotion)
+
         # 标识人脸识别结果
-        for (top, right, bottom, left), name in zip(face_locations, face_names):
+        for (top, right, bottom, left), name, emotion in zip(face_locations, face_names, face_emotions):
             # 将识别出的人脸位置坐标缩放回原先的比例
             top *= FRAME_RESIZE_SCALE
             right *= FRAME_RESIZE_SCALE
@@ -89,9 +113,10 @@ def test():
             # 使用一个矩形标识识别出的人脸区域
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 1)
 
-            # 在矩形框下放绘制识别出的人名
+            # 在矩形框下方绘制识别出的人名
             font = cv2.FONT_HERSHEY_PLAIN
             cv2.putText(frame, name, (left + 6, bottom + 20), font, 1.0, (255, 255, 255), 1)
+            cv2.putText(frame, emotion, (left + 6, bottom + 40), font, 1.0, (255, 255, 255), 1)
 
         # 显示识别结果
         cv2.imshow('Video', frame)
@@ -108,5 +133,5 @@ def test():
     pass
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     test()
