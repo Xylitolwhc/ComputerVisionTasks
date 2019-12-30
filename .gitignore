@@ -185,4 +185,5 @@ gen
 *.joblib
 /FinalTask/.ipynb_checkpoints
 /Multimedia search/dataset/
-Task6/VOCdevkit
+/Task6/VOCdevkit
+
