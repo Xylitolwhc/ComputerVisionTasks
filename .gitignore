@@ -187,4 +187,5 @@ gen
 /Multimedia search/dataset/
 /Task6/VOCdevkit
 *.hdf5
+Task10/dataset
 
