@@ -186,4 +186,5 @@ gen
 /FinalTask/.ipynb_checkpoints
 /Multimedia search/dataset/
 /Task6/VOCdevkit
+*.hdf5
 
